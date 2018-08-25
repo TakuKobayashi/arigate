@@ -53,3 +53,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 0
   baseGivePoint: 100
+  symbolAssetDB: {fileID: 11400000, guid: 1eba57b24825c4dbabc31fab0e51f3d8, type: 2}

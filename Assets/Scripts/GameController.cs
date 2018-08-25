@@ -9,6 +9,7 @@ public class GameController : SingletonBehaviour<GameController> {
 
     private List<TargetSymbol> appearSymbols = new List<TargetSymbol>();
     [SerializeField] private float baseGivePoint = 100;
+    [SerializeField] private UnityScriptableObject symbolAssetDB;
     public float CurrentPoint{ private set; get; }
     public Action OnHit = null;
 
