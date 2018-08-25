@@ -26,7 +26,7 @@ namespace GoogleARCore.Examples.CloudAnchors
     using GoogleARCore.Examples.Common;
     using UnityEngine;
     using UnityEngine.UI;
-    using UnityEngine.Networking;
+    using System.Net;
 
     /// <summary>
     /// Controller managing UI for the Cloud Anchors Example.
@@ -83,8 +83,18 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// </summary>
         public void Start()
         {
-            NetworkIdentity identity = GetComponent<NetworkIdentity>();
-            IPAddressText.text = "My IP Address: " + identity.connectionToClient;
+            List<string> ipaddresses = LocalIPAdresses();
+            IPAddressText.text = "My IP Address: " + string.Join(", ", ipaddresses);
+        }
+
+        private List<string> LocalIPAdresses(){
+            List<string> ipList = new List<string>();
+            string hostName = Dns.GetHostName();
+            IPAddress[] ipaddresses = Dns.GetHostEntry(hostName).AddressList;
+            foreach(var ip in ipaddresses){
+                ipList.Add(ip.ToString());
+            }
+            return ipList;
         }
 
         /// <summary>
