@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
 
 public class TargetSymbol : MonoBehaviour
 {
@@ -8,16 +8,18 @@ public class TargetSymbol : MonoBehaviour
     [SerializeField] private GameObject cursorObject;
 
     public int AssetIndex { private set; get; }
+    public string Uuid { private set; get; }
 
     public void Init()
     {
         GameObject[] assets = symbolAssetDB.GetObjects<GameObject>();
         System.Random random = new System.Random();
-        Init(random.Next(assets.Length));
+        Init(random.Next(assets.Length), Guid.NewGuid().ToString());
     }
 
-    public void Init(int assetIndex)
+    public void Init(int assetIndex, string uuid)
     {
+        Uuid = uuid;
         AssetIndex = assetIndex;
         GameObject[] assets = symbolAssetDB.GetObjects<GameObject>();
         GameObject symbol = assets[assetIndex];

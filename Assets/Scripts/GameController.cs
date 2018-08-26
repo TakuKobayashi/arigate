@@ -62,13 +62,13 @@ public class GameController : SingletonBehaviour<GameController>
         }
         else if (messageDic.ContainsKey("action") && messageDic["action"] == "appearObject")
         {
-            if (messageDic.ContainsKey("userId") && messageDic["userId"] != myId)
-            {
+            if (messageDic.ContainsKey("userId") && messageDic["userId"] != myId){
                 AppearSymbol(new Vector3(
                     float.Parse(messageDic["x"]),
                     float.Parse(messageDic["y"]),
                     float.Parse(messageDic["z"])),
-                    int.Parse(messageDic["assetIndex"])
+                             int.Parse(messageDic["assetIndex"]),
+                             messageDic["uuid"]
                 );
             }
         }
@@ -101,7 +101,7 @@ public class GameController : SingletonBehaviour<GameController>
         return targetSymbol;
     }
 
-    public TargetSymbol AppearSymbol(Vector3 appearPoint, int index){
+    public TargetSymbol AppearSymbol(Vector3 appearPoint, int index, string uuid){
         TargetSymbol targetSymbol;
 #if UNITY_ANDROID || UNITY_EDITOR
         GoogleARCore.Anchor anchor = GoogleARCore.Session.CreateAnchor(Pose.identity);
@@ -110,7 +110,7 @@ public class GameController : SingletonBehaviour<GameController>
 #else
         targetSymbol = Util.InstantiateTo<TargetSymbol>(this.gameObject, symbolObject);
 #endif
-        targetSymbol.Init(index);
+        targetSymbol.Init(index, uuid);
         targetSymbol.transform.position = appearPoint;
         appearSymbols.Add(targetSymbol);
         return targetSymbol;
@@ -167,6 +167,7 @@ public class GameController : SingletonBehaviour<GameController>
 
         var target = AppearSymbol(new Vector3(x, y, z));
         messageParams.Add("assetIndex", target.AssetIndex.ToString());
+        messageParams.Add("uuid", target.Uuid);
         string json = JsonSerializer.ToJsonString(messageParams);
         WebSocketManager.Instance.Send(json);
     }
