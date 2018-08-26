@@ -45,11 +45,11 @@ public class ARUICanvas : MonoBehaviour {
             messageText.text = remainCount.ToString();
             if (remainCount == 0){
                 messageText.text = "Start!!";
-            }else if (remainCount < 0)
-            {
+            }else if (remainCount < 0){
                 startDateTime = DateTime.Now;
                 messageText.gameObject.SetActive(false);
                 GameController.Instance.ChangeState(GameController.State.Playing);
+                GameController.Instance.RandomAppearObject();
             }
         }
         else if (currentState == GameController.State.Playing)
