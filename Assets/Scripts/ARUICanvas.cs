@@ -26,7 +26,8 @@ public class ARUICanvas : MonoBehaviour {
 	void Update () {
         GameController.State currentState = GameController.Instance.CurrentState;
 //        scoreText.text = "Score: " + GameController.Instance.CurrentPoint.ToString() + "\n" + Input.compass.magneticHeading.ToString();
-        scoreText.text = "Score: " + GameController.Instance.CurrentPoint.ToString();
+        scoreText.text = "MyScore: " + GameController.Instance.CurrentPoint.ToString() + "\n" + 
+            "OtherScore: " + GameController.Instance.OtherPoint.ToString();
         if(prevState == GameController.State.Waiting && currentState == GameController.State.CountDown){
             startDateTime = DateTime.Now;
         }
@@ -80,7 +81,17 @@ public class ARUICanvas : MonoBehaviour {
         else if (currentState == GameController.State.Finish)
         {
             messageText.gameObject.SetActive(true);
-            messageText.text = "Result: " + GameController.Instance.CurrentPoint.ToString();
+            string mes = "Result\n" +
+                "MyScore: " + GameController.Instance.CurrentPoint.ToString() + "\n" +
+                "OtherScore: " + GameController.Instance.OtherPoint.ToString()+ "\n";
+            if(GameController.Instance.CurrentPoint > GameController.Instance.OtherPoint){
+                mes += "WIN";
+            }else if(GameController.Instance.CurrentPoint < GameController.Instance.OtherPoint){
+                mes += "LOSE";
+            }else{
+                mes += "DRAW";
+            }
+            messageText.text = mes;
         }
 
         prevState = currentState;

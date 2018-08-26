@@ -26,6 +26,7 @@ public class GameController : SingletonBehaviour<GameController>
 
     public State CurrentState { private set; get; }
     public int CurrentPoint { private set; get; }
+    public int OtherPoint { private set; get; }
     public Action OnHit = null;
 
     private string myId = "";
@@ -70,6 +71,20 @@ public class GameController : SingletonBehaviour<GameController>
                              int.Parse(messageDic["assetIndex"]),
                              messageDic["uuid"]
                 );
+            }
+        }
+        else if (messageDic.ContainsKey("action") && messageDic["action"] == "GetPoint")
+        {
+            if (messageDic.ContainsKey("userId") && messageDic["userId"] != myId)
+            {
+                TargetSymbol hitsym = appearSymbols.Find(sym =>
+                {
+                    return sym.Uuid == messageDic["uuid"];
+                });
+                OtherPoint = int.Parse(messageDic["point"]);
+                if(hitsym != null){
+                    DeleteSymbol(hitsym);
+                }
             }
         }
     }
@@ -137,19 +152,32 @@ public class GameController : SingletonBehaviour<GameController>
         if (hitsym != null)
         {
             CurrentPoint += (int)Mathf.Max(baseGivePoint - ElapsedSecond, 0);
-#if UNITY_ANDROID || UNITY_EDITOR
-            Destroy(hitsym.transform.parent.gameObject);
-#else
-            Destroy(hitsym.gameObject);
-#endif
-            appearSymbols.Remove(hitsym);
+            DeleteSymbol(hitsym);
             ClearTime();
+
+            Dictionary<string, string> messageParams = new Dictionary<string, string>();
+            messageParams.Add("action", "GetPoint");
+            messageParams.Add("userId", myId);
+            messageParams.Add("uuid", hitsym.Uuid);
+            messageParams.Add("point", CurrentPoint.ToString());
+            string json = JsonSerializer.ToJsonString(messageParams);
+            WebSocketManager.Instance.Send(json);
 
             RandomAppearObject();
             if(OnHit != null){
                 OnHit();
             }
         }
+    }
+
+    public void DeleteSymbol(TargetSymbol hitsym)
+    {
+#if UNITY_ANDROID || UNITY_EDITOR
+            Destroy(hitsym.transform.parent.gameObject);
+#else
+            Destroy(hitsym.gameObject);
+#endif
+            appearSymbols.Remove(hitsym);
     }
 
     public void RandomAppearObject(){
