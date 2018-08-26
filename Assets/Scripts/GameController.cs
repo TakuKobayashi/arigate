@@ -5,13 +5,30 @@ using UnityEngine;
 
 public class GameController : SingletonBehaviour<GameController> {
 
+    public enum State{
+        Waiting,
+        CountDown,
+        Playing,
+        Timeup,
+        Finish
+    }
+
     public float ElapsedSecond { private set; get; }
 
     private List<TargetSymbol> appearSymbols = new List<TargetSymbol>();
     [SerializeField] private float baseGivePoint = 100;
     [SerializeField] private UnityScriptableObject symbolAssetDB;
+    public State CurrentState { private set; get; }
     public float CurrentPoint{ private set; get; }
     public Action OnHit = null;
+
+    public override void SingleAwake(){
+        CurrentState = State.Waiting;
+    }
+
+    public void ChangeState(State state){
+        CurrentState = state;
+    }
 
     public TargetSymbol AppearSymbol(Vector3 appearPoint, GameObject appearedObject){
         TargetSymbol targetSymbol;
@@ -29,6 +46,9 @@ public class GameController : SingletonBehaviour<GameController> {
 	// Update is called once per frame
 	void Update () {
         ElapsedSecond += Time.deltaTime;
+        if(CurrentState == State.Waiting && ElapsedSecond > 10){
+            ChangeState(State.CountDown);
+        }
         CheckHitAndGetPoint();
 	}
 
