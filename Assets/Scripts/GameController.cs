@@ -44,7 +44,7 @@ public class GameController : SingletonBehaviour<GameController>
 
     public void JoinMyId(string userId){
         myId = userId;
-        Dictionary<string, object> messageParams = new Dictionary<string, object>();
+        Dictionary<string, string> messageParams = new Dictionary<string, string>();
         messageParams.Add("action", "init");
         messageParams.Add("userId", myId);
         string json = JsonSerializer.ToJsonString(messageParams);
@@ -58,6 +58,18 @@ public class GameController : SingletonBehaviour<GameController>
             if(messageDic.ContainsKey("userId") && messageDic["userId"] != myId){
                 otherId = messageDic["userId"];
                 CheckStartAndChangeState();
+            }
+        }
+        else if (messageDic.ContainsKey("action") && messageDic["action"] == "appearObject")
+        {
+            if (messageDic.ContainsKey("userId") && messageDic["userId"] != myId)
+            {
+                AppearSymbol(new Vector3(
+                    float.Parse(messageDic["x"]),
+                    float.Parse(messageDic["y"]),
+                    float.Parse(messageDic["z"])),
+                    int.Parse(messageDic["assetIndex"])
+                );
             }
         }
     }
@@ -89,17 +101,30 @@ public class GameController : SingletonBehaviour<GameController>
         return targetSymbol;
     }
 
+    public TargetSymbol AppearSymbol(Vector3 appearPoint, int index){
+        TargetSymbol targetSymbol;
+#if UNITY_ANDROID || UNITY_EDITOR
+        GoogleARCore.Anchor anchor = GoogleARCore.Session.CreateAnchor(Pose.identity);
+        anchor.transform.parent = this.transform;
+        targetSymbol = Util.InstantiateTo<TargetSymbol>(anchor.gameObject, symbolObject); ;
+#else
+        targetSymbol = Util.InstantiateTo<TargetSymbol>(this.gameObject, symbolObject);
+#endif
+        targetSymbol.Init(index);
+        targetSymbol.transform.position = appearPoint;
+        appearSymbols.Add(targetSymbol);
+        return targetSymbol;
+    }
+
     // Update is called once per frame
     void Update()
     {
         ElapsedSecond += Time.deltaTime;
         // TODO Reset
-        /*
         if (CurrentState == State.Waiting && ElapsedSecond > 5)
         {
             ChangeState(State.CountDown);
         }
-        */
         CheckHitAndGetPoint();
     }
 
@@ -132,7 +157,18 @@ public class GameController : SingletonBehaviour<GameController>
         float x = UnityEngine.Random.RandomRange(0f, 1.5f);
         float y = UnityEngine.Random.RandomRange(-0.5f, 0.5f);
         float z = UnityEngine.Random.RandomRange(0f, 1.5f);
-        AppearSymbol(new Vector3(x, y, z));
+
+        Dictionary<string, string> messageParams = new Dictionary<string, string>();
+        messageParams.Add("action", "appearObject");
+        messageParams.Add("userId", myId);
+        messageParams.Add("x", x.ToString());
+        messageParams.Add("y", y.ToString());
+        messageParams.Add("z", z.ToString());
+
+        var target = AppearSymbol(new Vector3(x, y, z));
+        messageParams.Add("assetIndex", target.AssetIndex.ToString());
+        string json = JsonSerializer.ToJsonString(messageParams);
+        WebSocketManager.Instance.Send(json);
     }
 
     public void ClearTime(){

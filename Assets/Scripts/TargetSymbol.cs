@@ -7,11 +7,20 @@ public class TargetSymbol : MonoBehaviour
     [SerializeField] private UnityScriptableObject symbolAssetDB;
     [SerializeField] private GameObject cursorObject;
 
+    public int AssetIndex { private set; get; }
+
     public void Init()
     {
         GameObject[] assets = symbolAssetDB.GetObjects<GameObject>();
         System.Random random = new System.Random();
-        GameObject symbol = assets[random.Next(assets.Length)];
+        Init(random.Next(assets.Length));
+    }
+
+    public void Init(int assetIndex)
+    {
+        AssetIndex = assetIndex;
+        GameObject[] assets = symbolAssetDB.GetObjects<GameObject>();
+        GameObject symbol = assets[assetIndex];
         Util.InstantiateTo(this.gameObject, symbol);
     }
 
