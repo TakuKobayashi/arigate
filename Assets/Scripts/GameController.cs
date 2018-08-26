@@ -21,16 +21,29 @@ public class GameController : SingletonBehaviour<GameController>
     [SerializeField] private float baseGivePoint = 100;
     [SerializeField] private GameObject symbolObject;
     [SerializeField] private GameObject websocketManagerObject;
+    [SerializeField] private GameObject httprequestManagerObject;
 
     public State CurrentState { private set; get; }
     public int CurrentPoint { private set; get; }
     public Action OnHit = null;
 
+    private string myId = "";
+    private string otherId = "";
+
     public override void SingleAwake()
     {
+        myId = Guid.NewGuid().ToString();
         CurrentState = State.Waiting;
         Util.InstantiateTo(this.gameObject, websocketManagerObject);
+        Util.InstantiateTo(this.gameObject, httprequestManagerObject);
         WebSocketManager.Instance.Connect("ws://websocketserversample.au-syd.mybluemix.net/");
+        WebSocketManager.Instance.OnReceiveMessage = OnReceiveMessage;
+
+        Dictionary<string, object> messageParams = new Dictionary<string, object>();
+
+    }
+
+    private void OnReceiveMessage(string message){
     }
 
     public void ChangeState(State state)
