@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using Utf8Json;
 
 public class GameController : SingletonBehaviour<GameController>
 {
@@ -38,12 +39,26 @@ public class GameController : SingletonBehaviour<GameController>
         Util.InstantiateTo(this.gameObject, httprequestManagerObject);
         WebSocketManager.Instance.Connect("ws://websocketserversample.au-syd.mybluemix.net/");
         WebSocketManager.Instance.OnReceiveMessage = OnReceiveMessage;
+        JoinMyId(Guid.NewGuid().ToString());
+    }
 
+    public void JoinMyId(string userId){
+        myId = userId;
         Dictionary<string, object> messageParams = new Dictionary<string, object>();
-
+        messageParams.Add("action", "init");
+        messageParams.Add("userId", myId);
+        string json = JsonSerializer.ToJsonString(messageParams);
+        WebSocketManager.Instance.Send(json);
     }
 
     private void OnReceiveMessage(string message){
+        Dictionary<string, string> messageDic = JsonSerializer.Deserialize<Dictionary<string, string>>(System.Text.Encoding.UTF8.GetBytes(message));
+        if(messageDic.ContainsKey("action") && messageDic["action"] == "init"){
+            if(messageDic.ContainsKey("userId") && messageDic["userId"] != myId){
+                otherId = messageDic["userId"];
+                ChangeState(State.CountDown);
+            }
+        }
     }
 
     public void ChangeState(State state)
@@ -72,10 +87,12 @@ public class GameController : SingletonBehaviour<GameController>
     {
         ElapsedSecond += Time.deltaTime;
         // TODO Reset
+        /*
         if (CurrentState == State.Waiting && ElapsedSecond > 5)
         {
             ChangeState(State.CountDown);
         }
+        */
         CheckHitAndGetPoint();
     }
 
