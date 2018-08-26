@@ -49,6 +49,7 @@ public class GameController : SingletonBehaviour<GameController>
         messageParams.Add("userId", myId);
         string json = JsonSerializer.ToJsonString(messageParams);
         WebSocketManager.Instance.Send(json);
+        CheckStartAndChangeState();
     }
 
     private void OnReceiveMessage(string message){
@@ -56,8 +57,14 @@ public class GameController : SingletonBehaviour<GameController>
         if(messageDic.ContainsKey("action") && messageDic["action"] == "init"){
             if(messageDic.ContainsKey("userId") && messageDic["userId"] != myId){
                 otherId = messageDic["userId"];
-                ChangeState(State.CountDown);
+                CheckStartAndChangeState();
             }
+        }
+    }
+
+    private void CheckStartAndChangeState(){
+        if(!string.IsNullOrEmpty(myId) && !string.IsNullOrEmpty(otherId)){
+            ChangeState(State.CountDown);
         }
     }
 
