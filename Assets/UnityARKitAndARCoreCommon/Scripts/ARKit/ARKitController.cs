@@ -46,7 +46,7 @@
                 ARHitTestResultType.ARHitTestResultTypeHorizontalPlane,
                 //ARHitTestResultType.ARHitTestResultTypeFeaturePoint
             };
-
+            /*
             for (int i = 0; i < resultTypes.Length; ++i)
             {
                 List<ARHitTestResult> hitResults = UnityARSessionNativeInterface.GetARSessionNativeInterface().HitTest(point, resultTypes[i]);
@@ -60,6 +60,7 @@
                     break;
                }
            }
+           */
        }
    }
 }
