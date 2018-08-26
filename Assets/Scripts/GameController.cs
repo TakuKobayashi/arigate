@@ -20,6 +20,7 @@ public class GameController : SingletonBehaviour<GameController>
     private List<TargetSymbol> appearSymbols = new List<TargetSymbol>();
     [SerializeField] private float baseGivePoint = 100;
     [SerializeField] private GameObject symbolObject;
+    [SerializeField] private GameObject websocketManagerObject;
 
     public State CurrentState { private set; get; }
     public int CurrentPoint { private set; get; }
@@ -28,6 +29,8 @@ public class GameController : SingletonBehaviour<GameController>
     public override void SingleAwake()
     {
         CurrentState = State.Waiting;
+        Util.InstantiateTo(this.gameObject, websocketManagerObject);
+        WebSocketManager.Instance.Connect("ws://websocketserversample.au-syd.mybluemix.net/");
     }
 
     public void ChangeState(State state)
