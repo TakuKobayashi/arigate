@@ -18,11 +18,14 @@ public class ARUICanvas : MonoBehaviour {
         startDateTime = DateTime.Now;
         timeLimitBar.value = 0f;
         timeLimitBar.size = 1.0f;
+        Input.compass.enabled = true;
+        Input.location.Start();
 	}
 	
 	// Update is called once per frame
 	void Update () {
         GameController.State currentState = GameController.Instance.CurrentState;
+//        scoreText.text = "Score: " + GameController.Instance.CurrentPoint.ToString() + "\n" + Input.compass.magneticHeading.ToString();
         scoreText.text = "Score: " + GameController.Instance.CurrentPoint.ToString();
         if(prevState == GameController.State.Waiting && currentState == GameController.State.CountDown){
             startDateTime = DateTime.Now;
