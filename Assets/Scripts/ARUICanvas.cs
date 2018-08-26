@@ -48,6 +48,7 @@ public class ARUICanvas : MonoBehaviour {
             }else if (remainCount < 0){
                 startDateTime = DateTime.Now;
                 messageText.gameObject.SetActive(false);
+                GameController.Instance.ClearTime();
                 GameController.Instance.ChangeState(GameController.State.Playing);
                 GameController.Instance.RandomAppearObject();
             }

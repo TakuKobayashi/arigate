@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-public class GameController : SingletonBehaviour<GameController> {
+public class GameController : SingletonBehaviour<GameController>
+{
 
-    public enum State{
+    public enum State
+    {
         Waiting,
         CountDown,
         Playing,
@@ -15,59 +17,66 @@ public class GameController : SingletonBehaviour<GameController> {
 
     public float ElapsedSecond { private set; get; }
 
-    private List<GameObject> appearSymbols = new List<GameObject>();
+    private List<TargetSymbol> appearSymbols = new List<TargetSymbol>();
     [SerializeField] private float baseGivePoint = 100;
-    [SerializeField] private UnityScriptableObject symbolAssetDB;
-    [SerializeField] private float hitDistance = 0.1f;
+    [SerializeField] private GameObject symbolObject;
 
     public State CurrentState { private set; get; }
-    public float CurrentPoint{ private set; get; }
+    public int CurrentPoint { private set; get; }
     public Action OnHit = null;
 
-    private GameObject[] assets;
-
-    public override void SingleAwake(){
+    public override void SingleAwake()
+    {
         CurrentState = State.Waiting;
-        assets = symbolAssetDB.GetObjects<GameObject>();
     }
 
-    public void ChangeState(State state){
+    public void ChangeState(State state)
+    {
         CurrentState = state;
     }
 
-    public GameObject AppearSymbol(Vector3 appearPoint, GameObject appearedObject){
-        GameObject targetSymbol;
+    public TargetSymbol AppearSymbol(Vector3 appearPoint)
+    {
+        TargetSymbol targetSymbol;
 #if UNITY_ANDROID || UNITY_EDITOR
         GoogleARCore.Anchor anchor = GoogleARCore.Session.CreateAnchor(Pose.identity);
         anchor.transform.parent = this.transform;
-        targetSymbol = Util.InstantiateTo(anchor.gameObject, appearedObject);;
+        targetSymbol = Util.InstantiateTo<TargetSymbol>(anchor.gameObject, symbolObject); ;
 #else
-        targetSymbol = Util.InstantiateTo(this.gameObject, appearedObject);
+        targetSymbol = Util.InstantiateTo<TargetSymbol>(this.gameObject, symbolObject);
 #endif
+        targetSymbol.Init();
         targetSymbol.transform.position = appearPoint;
         appearSymbols.Add(targetSymbol);
         return targetSymbol;
     }
 
-	// Update is called once per frame
-	void Update () {
+    // Update is called once per frame
+    void Update()
+    {
         ElapsedSecond += Time.deltaTime;
         // TODO Reset
-        if(CurrentState == State.Waiting && ElapsedSecond > 5){
+        if (CurrentState == State.Waiting && ElapsedSecond > 5)
+        {
             ChangeState(State.CountDown);
         }
         CheckHitAndGetPoint();
-	}
+    }
 
-    public void CheckHitAndGetPoint(){
-        GameObject hitsym = appearSymbols.Find(sym => {
-            float distance = Vector3.SqrMagnitude(sym.transform.position - Camera.main.transform.position);
-            Debug.Log(distance);
-            return distance < hitDistance;
+    public void CheckHitAndGetPoint()
+    {
+        TargetSymbol hitsym = appearSymbols.Find(sym =>
+        {
+            return sym.IsHit(Camera.main.transform.position);
         });
-        if(hitsym != null){
-            CurrentPoint += Mathf.Max(baseGivePoint - ElapsedSecond, 0);
-            Destroy(hitsym);
+        if (hitsym != null)
+        {
+            CurrentPoint += (int)Mathf.Max(baseGivePoint - ElapsedSecond, 0);
+#if UNITY_ANDROID || UNITY_EDITOR
+            Destroy(hitsym.transform.parent.gameObject);
+#else
+            Destroy(hitsym.gameObject);
+#endif
             appearSymbols.Remove(hitsym);
             ClearTime();
 
@@ -80,11 +89,10 @@ public class GameController : SingletonBehaviour<GameController> {
 
     public void RandomAppearObject(){
         System.Random random = new System.Random();
-        float x = UnityEngine.Random.RandomRange(0f, 2.0f);
+        float x = UnityEngine.Random.RandomRange(0f, 1.5f);
         float y = UnityEngine.Random.RandomRange(-0.5f, 0.5f);
-        float z = UnityEngine.Random.RandomRange(0f, 2.0f);
-        GameObject symbol = assets[random.Next(assets.Length)];
-        AppearSymbol(new Vector3(x, y, z), symbol);
+        float z = UnityEngine.Random.RandomRange(0f, 1.5f);
+        AppearSymbol(new Vector3(x, y, z));
     }
 
     public void ClearTime(){
