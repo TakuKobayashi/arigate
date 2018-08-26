@@ -90,8 +90,7 @@ namespace ARKitAndARCoreCommon
                 // Instantiate a plane visualization prefab and set it to track the new plane. The transform is set to
                 // the origin with an identity rotation since the mesh for our prefab is updated in Unity World
                 // coordinates.
-                GameObject planeObject = Instantiate(TrackedPlanePrefab, Vector3.zero, Quaternion.identity,
-                    transform);
+                GameObject planeObject = Instantiate(TrackedPlanePrefab, Vector3.zero, Quaternion.identity, transform);
 				planeObject.GetComponent<DetectedPlaneVisualizer>().Initialize(m_NewPlanes[i]);
             }
 
@@ -107,7 +106,7 @@ namespace ARKitAndARCoreCommon
                 }
             }
             //SearchingForPlaneUI.SetActive(showSearchingUI);
-
+            /*
             // If the player has not touched the screen, we are done with this update.
             Touch touch;
             if (Input.touchCount < 1 || (touch = Input.GetTouch(0)).phase != TouchPhase.Began)
@@ -142,6 +141,7 @@ namespace ARKitAndARCoreCommon
                 // Make Andy model a child of the anchor.
                 andyObject.transform.parent = anchor.transform;
             }
+            */
         }
 
         /// <summary>
