@@ -703,7 +703,8 @@ PlayerSettings:
   scriptingDefineSymbols:
     4: ARCORE_IOS_SUPPORT
   platformArchitecture: {}
-  scriptingBackend: {}
+  scriptingBackend:
+    Android: 1
   il2cppCompilerConfiguration: {}
   incrementalIl2cppBuild: {}
   allowUnsafeCode: 1
