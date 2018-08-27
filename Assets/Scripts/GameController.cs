@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
-using Utf8Json;
+using Newtonsoft.Json;
 
 public class GameController : SingletonBehaviour<GameController>
 {
@@ -48,13 +48,13 @@ public class GameController : SingletonBehaviour<GameController>
         Dictionary<string, string> messageParams = new Dictionary<string, string>();
         messageParams.Add("action", "init");
         messageParams.Add("userId", myId);
-        string json = JsonSerializer.ToJsonString(messageParams);
+        string json = JsonConvert.SerializeObject(messageParams);
         WebSocketManager.Instance.Send(json);
         CheckStartAndChangeState();
     }
 
     private void OnReceiveMessage(string message){
-        Dictionary<string, string> messageDic = JsonSerializer.Deserialize<Dictionary<string, string>>(System.Text.Encoding.UTF8.GetBytes(message));
+        Dictionary<string, string> messageDic = JsonConvert.DeserializeObject<Dictionary<string, string>>(message);
         if(messageDic.ContainsKey("action") && messageDic["action"] == "init"){
             if(messageDic.ContainsKey("userId") && messageDic["userId"] != myId){
                 otherId = messageDic["userId"];
@@ -162,7 +162,7 @@ public class GameController : SingletonBehaviour<GameController>
             messageParams.Add("userId", myId);
             messageParams.Add("uuid", hitsym.Uuid);
             messageParams.Add("point", CurrentPoint.ToString());
-            string json = JsonSerializer.ToJsonString(messageParams);
+            string json = JsonConvert.SerializeObject(messageParams);
             WebSocketManager.Instance.Send(json);
 
             RandomAppearObject();
@@ -198,7 +198,7 @@ public class GameController : SingletonBehaviour<GameController>
         var target = AppearSymbol(new Vector3(x, y, z));
         messageParams.Add("assetIndex", target.AssetIndex.ToString());
         messageParams.Add("uuid", target.Uuid);
-        string json = JsonSerializer.ToJsonString(messageParams);
+        string json = JsonConvert.SerializeObject(messageParams);
         WebSocketManager.Instance.Send(json);
     }
 
