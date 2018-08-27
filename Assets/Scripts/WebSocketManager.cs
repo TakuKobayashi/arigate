@@ -59,8 +59,15 @@ public class WebSocketManager : SingletonBehaviour<WebSocketManager>{
 	}
 
 	public void Send(string message){
-		this.ws.Send(message);
+        StartCoroutine(SendCoroutine(message));
 	}
+
+    private IEnumerator SendCoroutine(string message){
+        while(!isSocketOpened){
+            yield return null;
+        }
+        this.ws.Send(message);        
+    }
     
 	public void Close()
 	{
