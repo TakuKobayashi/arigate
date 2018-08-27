@@ -136,10 +136,12 @@ public class GameController : SingletonBehaviour<GameController>
     {
         ElapsedSecond += Time.deltaTime;
         // TODO Reset
+        /*
         if (CurrentState == State.Waiting && ElapsedSecond > 5)
         {
             ChangeState(State.CountDown);
         }
+        */
         CheckHitAndGetPoint();
     }
 
