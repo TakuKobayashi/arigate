@@ -38,7 +38,7 @@ public class GameController : SingletonBehaviour<GameController>
         CurrentState = State.Waiting;
         Util.InstantiateTo(this.gameObject, websocketManagerObject);
         Util.InstantiateTo(this.gameObject, httprequestManagerObject);
-        WebSocketManager.Instance.Connect("ws://websocketserversample.au-syd.mybluemix.net/");
+        WebSocketManager.Instance.Connect("wss://websocketserversample.au-syd.mybluemix.net/");
         WebSocketManager.Instance.OnReceiveMessage = OnReceiveMessage;
         JoinMyId(Guid.NewGuid().ToString());
     }
