@@ -29,71 +29,74 @@ public class GameController : SingletonBehaviour<GameController>
     public int OtherPoint { private set; get; }
     public Action OnHit = null;
 
-    private string myId = "";
-    private string otherId = "";
+    private User myUser;
+    private List<User> otherUsers = new List<User>();
 
     public override void SingleAwake()
     {
-        myId = Guid.NewGuid().ToString();
+        string myId = Guid.NewGuid().ToString();
         CurrentState = State.Waiting;
         Util.InstantiateTo(this.gameObject, websocketManagerObject);
         Util.InstantiateTo(this.gameObject, httprequestManagerObject);
-        WebSocketManager.Instance.Connect("wss://websocketserversample.au-syd.mybluemix.net/");
+        WebSocketManager.Instance.Connect("wss://websocketserversample.au-syd.mybluemix.net/arigate");
         WebSocketManager.Instance.OnReceiveMessage = OnReceiveMessage;
         JoinMyId(Guid.NewGuid().ToString());
     }
 
     public void JoinMyId(string userId){
-        myId = userId;
-        Dictionary<string, string> messageParams = new Dictionary<string, string>();
+        Dictionary<string, object> messageParams = new Dictionary<string, object>();
         messageParams.Add("action", "init");
-        messageParams.Add("userId", myId);
+        messageParams.Add("room_id", "aaa");
+        messageParams.Add("member_count", 2);
+        messageParams.Add("user_id", userId);
         string json = JsonConvert.SerializeObject(messageParams);
         WebSocketManager.Instance.Send(json);
-        CheckStartAndChangeState();
+        //CheckStartAndChangeState();
     }
 
     private void OnReceiveMessage(string message){
-        Dictionary<string, string> messageDic = JsonConvert.DeserializeObject<Dictionary<string, string>>(message);
-        if(messageDic.ContainsKey("action") && messageDic["action"] == "init"){
-            if(messageDic.ContainsKey("userId") && messageDic["userId"] != myId){
-                otherId = messageDic["userId"];
-                CheckStartAndChangeState();
-            }
+        Room room = JsonConvert.DeserializeObject<Room>(message);
+        UpdateRoomUsers(room);
+        if (CurrentState == State.Timeup || CurrentState == State.Finish){
+            return;
         }
-        else if (messageDic.ContainsKey("action") && messageDic["action"] == "appearObject")
-        {
-            if (messageDic.ContainsKey("userId") && messageDic["userId"] != myId){
-                AppearSymbol(new Vector3(
-                    float.Parse(messageDic["x"]),
-                    float.Parse(messageDic["y"]),
-                    float.Parse(messageDic["z"])),
-                             int.Parse(messageDic["assetIndex"]),
-                             messageDic["uuid"]
-                );
-            }
+        if(room.action == "start_count_down"){
+            ChangeState(State.CountDown);
         }
-        else if (messageDic.ContainsKey("action") && messageDic["action"] == "GetPoint")
+        else if (room.action == "appear_object")
         {
-            if (messageDic.ContainsKey("userId") && messageDic["userId"] != myId)
-            {
-                TargetSymbol hitsym = appearSymbols.Find(sym =>
+            if(room.targets != null){
+                for (int i = 0; i < appearSymbols.Count;++i){
+                    DeleteSymbol(appearSymbols[i]);
+                }
+                for (int i = 0; i < room.targets.Count; ++i)
                 {
-                    return sym.Uuid == messageDic["uuid"];
-                });
-                OtherPoint = int.Parse(messageDic["point"]);
-                if(hitsym != null){
-                    DeleteSymbol(hitsym);
+                    TargetObj target = room.targets[i];
+                    AppearSymbol(new Vector3(target.x, target.y, target.z), target.asset_index, target.id);
                 }
             }
         }
     }
 
+    private void UpdateRoomUsers(Room room){
+        if(room.my_user != null){
+            myUser = room.my_user;
+            CurrentPoint = (int) myUser.point;
+        }
+        if (room.room_users != null)
+        {
+            otherUsers = room.room_users;
+            OtherPoint = (int) otherUsers[0].point;
+        }
+    }
+
+    /*
     private void CheckStartAndChangeState(){
         if(!string.IsNullOrEmpty(myId) && !string.IsNullOrEmpty(otherId)){
             ChangeState(State.CountDown);
         }
     }
+    */
 
     public void ChangeState(State state)
     {
@@ -153,19 +156,17 @@ public class GameController : SingletonBehaviour<GameController>
         });
         if (hitsym != null)
         {
-            CurrentPoint += (int)Mathf.Max(baseGivePoint - ElapsedSecond, 0);
             DeleteSymbol(hitsym);
             ClearTime();
 
-            Dictionary<string, string> messageParams = new Dictionary<string, string>();
-            messageParams.Add("action", "GetPoint");
-            messageParams.Add("userId", myId);
-            messageParams.Add("uuid", hitsym.Uuid);
-            messageParams.Add("point", CurrentPoint.ToString());
+            Dictionary<string, object> messageParams = new Dictionary<string, object>();
+            messageParams.Add("action", "contact");
+            messageParams.Add("user_id", myUser.user_id);
+            messageParams.Add("room_id", myUser.room_id);
             string json = JsonConvert.SerializeObject(messageParams);
             WebSocketManager.Instance.Send(json);
 
-            RandomAppearObject();
+//            RandomAppearObject();
             if(OnHit != null){
                 OnHit();
             }
@@ -190,7 +191,7 @@ public class GameController : SingletonBehaviour<GameController>
 
         Dictionary<string, string> messageParams = new Dictionary<string, string>();
         messageParams.Add("action", "appearObject");
-        messageParams.Add("userId", myId);
+//        messageParams.Add("userId", myId);
         messageParams.Add("x", x.ToString());
         messageParams.Add("y", y.ToString());
         messageParams.Add("z", z.ToString());
